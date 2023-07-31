@@ -101,7 +101,6 @@ export const sessionProvider = createSlice({
     });
     builder.addCase(login.fulfilled, (state, action) => {
       localStorage.setItem("token", action.payload.token);
-      console.log("token set");
       state.loading = false;
       state.error = false;
       state.userId = action.payload.userId;

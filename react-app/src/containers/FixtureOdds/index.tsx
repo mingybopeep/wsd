@@ -133,6 +133,7 @@ const FixtureOdds: React.FC<Props> = ({ fixtureId }: Props) => {
               {/* <Chart data={mappedData} /> */}
 
               {(filterState.group ? latestByBooky : data).map((o) => {
+                const changes = calcDelta(data, o);
                 return (
                   <Grid item xs={12} p="5px">
                     <Box
@@ -152,14 +153,37 @@ const FixtureOdds: React.FC<Props> = ({ fixtureId }: Props) => {
                           display: "flex",
                         }}
                       >
-                        {o.Price.map((p) => {
+                        {o.Price.map((p, idx) => {
+                          const hasChanges = changes[idx];
+                          const isNegative =
+                            hasChanges != undefined &&
+                            hasChanges.startsWith("-");
+
                           return (
-                            <Typography sx={{ flex: 1 }}>
-                              <>
+                            <Box
+                              sx={{
+                                flex: 1,
+                                display: "flex",
+                              }}
+                            >
+                              <Typography flex="1">
                                 <b>{p.priceName.name} </b>
                                 {p.value}
-                              </>
-                            </Typography>
+                              </Typography>
+
+                              {hasChanges != undefined &&
+                                hasChanges !== "0.00" && (
+                                  <Typography
+                                    sx={{
+                                      flex: "0.3",
+                                      fontSize: "8px",
+                                      color: isNegative ? "red" : "green",
+                                    }}
+                                  >{`${
+                                    isNegative ? "" : "+"
+                                  } ${hasChanges}%`}</Typography>
+                                )}
+                            </Box>
                           );
                         })}
                         {o.type.id === 1 && (
@@ -226,7 +250,6 @@ const mapData = (data: Odds[]) => {
     return [];
   }
 
-  console.log(data);
   const dates = data.map((d) => moment(d.timestamp).unix() * 1000);
 
   const latest = moment(Math.max(...dates));
@@ -244,7 +267,6 @@ const mapData = (data: Odds[]) => {
         currentDate.format("YY-MM-DD-HH")
     );
 
-    console.log({ onThisDate });
 
     const nowByBooky = bookies.reduce(
       (acc, booky) => {
@@ -267,6 +289,25 @@ const mapData = (data: Odds[]) => {
     mapped.push(nowByBooky);
   }
 
-  console.log({ mapped });
   return mapped;
+};
+
+const calcDelta = (data: Odds[], point: Odds) => {
+  return point.Price.map((p, idx) => {
+    const found = data.find(
+      (d) =>
+        new Date(d.timestamp) < new Date(point.timestamp) &&
+        d.booky.id === point.booky.id &&
+        d.Price[idx] !== undefined &&
+        d.type.id === point.type.id
+    );
+
+    if (!found) {
+      return null;
+    }
+
+    const diff = p.value - found.Price[idx].value;
+    const pctChg = (diff / found.Price[idx].value) * 100;
+    return pctChg.toFixed(2);
+  });
 };

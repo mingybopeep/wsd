@@ -55,7 +55,6 @@ export const Chart = ({
     [key: string]: string | number[];
   }[];
 }) => {
-  console.log(data);
   return (
     <Box
       sx={{ width: "100%", height: "400px", background: "rgba(10,10,10,0.8)" }}
@@ -71,7 +70,6 @@ export const Chart = ({
                 return;
               }
 
-              console.log({ b: d.booky });
 
               // @ts-ignore
               return d[booky].map((p) => {
